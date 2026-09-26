@@ -1,0 +1,13 @@
+# telemetry output
+telemetry/
+telemetry-py/
+
+# contains the API key -- never commit
+telemetry.config.json
+
+# temp / diagnostic files
+_*
+
+# Python
+__pycache__/
+*.pyc

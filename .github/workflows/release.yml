@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate sources
+        run: python -m py_compile controller.py jellyfin_telemetry.py launch.py make_assets.py
+
+      - name: Read version from controller.py
+        id: ver
+        shell: bash
+        run: |
+          V=$(python -c "import re; print(re.search(r'APP_VERSION = \"([^\"]+)\"', open('controller.py').read()).group(1))")
+          echo "APP_VERSION = $V"
+          echo "tag=v$V" >> "$GITHUB_OUTPUT"
+
+      - name: Create tag + release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.ver.outputs.tag }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists — nothing to do."
+          elif git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists; creating its release."
+            gh release create "$TAG" --generate-notes
+          else
+            echo "Creating tag + release $TAG at $GITHUB_SHA."
+            gh release create "$TAG" --target "$GITHUB_SHA" --generate-notes
+          fi

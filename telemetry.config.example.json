@@ -1,0 +1,6 @@
+{
+  "serverUrl": "http://your-jellyfin-host:8096",
+  "apiKey": "PASTE_YOUR_KEY_HERE",
+  "githubRepo": "yourname/jellyfin-syncplay-doctor",
+  "clientLogPath": ""
+}
